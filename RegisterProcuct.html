@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
+        .wrapper { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .btn { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
+        .btn:hover { background-color: #45a049; }
+        .api-response { margin-top: 15px; padding: 10px; border-radius: 4px; }
+        .success { background-color: #dff0d8; color: #3c763d; }
+        .error { background-color: #f2dede; color: #a94442; }
+        .product-list { margin-top: 20px; }
+        .product-item { padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px; background: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <h2>Product Management</h2>
+
+        <!-- Form to Create Product -->
+        <form id="productForm">
+            <div class="form-group">
+                <label>Product Name</label>
+                <input type="text" id="productName" required>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <input type="text" id="description" required>
+            </div>
+            <div class="form-group">
+                <label>Quantity</label>
+                <input type="number" id="quantity" required>
+            </div>
+            <div class="form-group">
+                <label>Price</label>
+                <input type="number" id="price" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn">Add Product</button>
+            </div>
+        </form>
+        <div id="apiResponse" class="api-response"></div>
+
+        <!-- Section to Display Products -->
+        <div class="product-list">
+            <h3>Product List</h3>
+            <div id="productContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const apiBaseUrl = 'https://api-vcxf.onrender.com/api';
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzAsInVzZXJuYW1lIjoiQWRtaW5AZ21haWwuY29tIiwiaWF0IjoxNzQ2NTQ0NTQzLCJleHAiOjE3NDY1ODA1NDN9.EN0CoM6bG9L0Y8KT_gcTshpz-oHIxjoyAsjPAOelGG8'; // Replace with your actual JWT token
+
+        // Fetch and display products
+        async function fetchProducts() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/products`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const products = await response.json();
+                    const productContainer = document.getElementById('productContainer');
+                    productContainer.innerHTML = '';
+
+                    if (response.ok) {
+                        products.forEach(product => {
+                            const productItem = document.createElement('div');
+                            productItem.className = 'product-item';
+                            productItem.innerHTML = `
+                                <strong>${product.productname}</strong><br>
+                                Description: ${product.description}<br>
+                                Quantity: ${product.quantity}<br>
+                                Price: $${product.price.toFixed(2)}
+                            `;
+                            productContainer.appendChild(productItem);
+                        });
+                    } else {
+                        productContainer.innerHTML = `<div class="error">Failed to fetch products: ${products.error || 'Unknown error'}</div>`;
+                    }
+                } else {
+                    const text = await response.text();
+                    throw new Error(`Unexpected response: ${text}`);
+                }
+            } catch (error) {
+                const productContainer = document.getElementById('productContainer');
+                productContainer.innerHTML = `<div class="error">Error fetching products: ${error.message}</div>`;
+            }
+        }
+
+        // Handle product creation
+        document.getElementById('productForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const productName = document.getElementById('productName').value;
+            const description = document.getElementById('description').value;
+            const quantity = document.getElementById('quantity').value;
+            const price = document.getElementById('price').value;
+
+            const data = {
+                productname: productName,
+                description: description,
+                quantity: parseInt(quantity),
+                price: parseFloat(price),
+                createdat: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const contentType = response.headers.get('content-type');
+                const result = contentType && contentType.includes('application/json') ? await response.json() : null;
+                const apiResponse = document.getElementById('apiResponse');
+
+                if (response.ok) {
+                    apiResponse.textContent = 'Product added successfully!';
+                    apiResponse.className = 'api-response success';
+                    fetchProducts(); // Refresh the product list
+                } else {
+                    apiResponse.textContent = result?.error || 'Failed to add product.';
+                    apiResponse.className = 'api-response error';
+                }
+            } catch (error) {
+                const apiResponse = document.getElementById('apiResponse');
+                apiResponse.textContent = 'Error adding product: ' + error.message;
+                apiResponse.className = 'api-response error';
+            }
+        });
+
+        // Fetch products on page load
+        fetchProducts();
+    </script>
+</body>
+</html>
