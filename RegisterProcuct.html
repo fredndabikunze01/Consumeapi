@@ -57,7 +57,7 @@
 
     <script>
         const apiBaseUrl = 'https://api-vcxf.onrender.com/api';
-        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzAsInVzZXJuYW1lIjoiQWRtaW5AZ21haWwuY29tIiwiaWF0IjoxNzQ2NTQ0NTQzLCJleHAiOjE3NDY1ODA1NDN9.EN0CoM6bG9L0Y8KT_gcTshpz-oHIxjoyAsjPAOelGG8'; // Replace with your actual JWT token
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJ1c2VyMSIsImlhdCI6MTc0Njc4NzI2NCwiZXhwIjoxNzQ2ODIzMjY0fQ._v1OWbD29mQFNgVDRFy1ZtjSN7OkaEnqvvUpnI9ktq4'; // Replace with your actual JWT token
 
         // Fetch and display products
         async function fetchProducts() {
@@ -111,7 +111,7 @@
             const price = document.getElementById('price').value;
 
             const data = {
-                productname: productName,
+                productName: productName,
                 description: description,
                 quantity: parseInt(quantity),
                 price: parseFloat(price),
